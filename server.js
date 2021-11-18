@@ -151,16 +151,16 @@ app.post("/unirseEquipo", function (req, res) {
   MongoClient.connect(url, function (err, db) {
     if (err) throw err;
     var dbo = db.db("proyectfinal");
-    var data = req.body;
+    let data = req.body;
     
-    var deletevalue = { $pull: { listaJugadores: data.nombreUsuario } };
-    var myqueryJugador = { listaJugadores: data.nombreUsuario };
+    let deletevalue = { $pull: { listaJugadores: data.nombreUsuario } };
+    let myqueryJugador = { listaJugadores: data.nombreUsuario };
 
-    var myquery = { nombreEquipo: data.nombreEquipo };
-    var newvalues = { $push: { listaJugadores: data.nombreUsuario } };
+    let myquery = { nombreEquipo: data.nombreEquipo };
+    let newvalues = { $push: { listaJugadores: data.nombreUsuario } };
 
-    var myqueryUser = { nombre: data.nombreUsuario };
-    var newvaluesUser = { $set: { nombreEquipo: data.nombreEquipo } };
+    let myqueryUser = { nombre: data.nombreUsuario };
+    let newvaluesUser = { $set: { nombreEquipo: data.nombreEquipo } };
 
     dbo
     .collection("equipos")
@@ -256,7 +256,7 @@ app.post("/enviarGanador", function (req, res) {
   console.log("console CrearEquipo", req.body);
   MongoClient.connect(url, function (err, db) {
     var dbo = db.db("proyectfinal");   
-          var newGanadores = { $push: { "ganadores": req.body } };
+          let newGanadores = { $push: { "ganadores": req.body } };
       dbo
       .collection("Torneos")
       .find( { "ganadores.indice" : { $eq:req.body.indice } })
@@ -295,18 +295,39 @@ app.post("/cambiarGanador", function (req, res) {
         if(result.length > 0){
           let longitud = result[0].ganadores.length;
           console.log("este es el result0 antes" , result[0].ganadores);
-          console.log("este es el result0 antes" , result[0].ganadores);
           let ganadoresAntiguos = result[0].ganadores;
           console.log("ganadoreAntiguos antes antes del splice" , ganadoresAntiguos);
-          
+         
           ganadoresAntiguos.splice(req.body.indice-1,1);
+          
             // primero encontrar la posicion en la que se encuentra este indice dentro del array de ganadores
             // una vez q la hemos encontrado(creo q nos  serviria indexOf), una vez tenemos la posicion 
-            // hacemos el splice de la posicionj en la q se encuentra el objeto q coincide con nuestro indice a modificar
+            // hacemos el splice de la posicion en la q se encuentra el objeto q coincide con nuestro indice a modificar
 
           console.log("ganadoreAntiguos antes despues del splice" , ganadoresAntiguos);
           ganadoresAntiguos.push(req.body);
-          console.log("ganadoreAntiguos despues del push" , ganadoresAntiguos);
+          let nuevosGanadores= ganadoresAntiguos;
+          console.log("nuevosganadores despues del push" , nuevosGanadores);
+          let indexPosition = nuevosGanadores.indexOf(req.body);
+          console.log("Este es el indexposition",indexPosition);
+          let nuevoResult= (req.body.resultados)
+          let nuevoIndex = (`indice: ${indexPosition}`);
+          nuevoCombo ={nuevoResult,nuevoIndex}
+          nuevosGanadores.splice(indexPosition,1, nuevoCombo);
+          console.log("EStes es el splice del indice",nuevosGanadores);
+          var dbo = db.db("proyectfinal");
+          let pullAntiguosGanadores= { $pull: {"ganadores": {$ne:0 }}};
+          dbo.collection("Torneos").updateOne({nombreTorneo:"For honor"},pullAntiguosGanadores, function (err, res) {
+            if (err) throw err;
+            console.log("nuevos ganadores insertados");
+          }); 
+          let pushNuevosGanadores= { $push: {"ganadores":nuevosGanadores }};
+
+          dbo.collection("Torneos").updateOne({nombreTorneo:"For honor"},pushNuevosGanadores, function (err, res) {
+            if (err) throw err;
+            console.log("nuevos ganadores insertados");
+            db.close();
+            });
           
 
           //ordenar el array por el indice 
