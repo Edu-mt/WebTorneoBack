@@ -256,7 +256,7 @@ app.post("/enviarGanador", function (req, res) {
   console.log("console CrearEquipo", req.body);
   MongoClient.connect(url, function (err, db) {
     var dbo = db.db("proyectfinal");   
-          let newGanadores = { $push: { "ganadores": req.body } };
+      let newGanadores = { $push: { "ganadores": req.body } };
       dbo
       .collection("Torneos")
       .find( { "ganadores.indice" : { $eq:req.body.indice } })
@@ -270,8 +270,28 @@ app.post("/enviarGanador", function (req, res) {
         dbo.collection("Torneos").updateOne({},newGanadores, function (err, res) {
         if (err) throw err;
         console.log("1 Torneo insertado");
-        db.close();
+        
         });
+          
+        dbo.collection("Torneos").find({},{ projection: { _id: 0, ganadores:1} }).toArray(function(err, resultGanadores) { 
+          if (err) throw err; 
+          console.log("Este es result ganadores", resultGanadores); 
+          db.close()
+          let ganadoresOrdenados = resultGanadores;
+
+          function mycomparator(a,b) {
+            return (a.indice) - (b.indice);
+          }
+          
+          ganadoresOrdenados[0].ganadores.sort(mycomparator);
+        console.log("Este esganadores con sort", ganadoresOrdenados[0].ganadores); 
+        console.log("Este es ganadores resultGanadores[0].ganadores", resultGanadores[0].ganadores); 
+        console.log("Este esganadores con ganadoresOrdenados[0].ganadores", ganadoresOrdenados[0].ganadores); 
+
+        }); 
+
+     
+       
       }
       else{
         isFindEnviarGanador = true;
@@ -300,20 +320,21 @@ app.post("/cambiarGanador", function (req, res) {
          
           ganadoresAntiguos.splice(req.body.indice-1,1);
           
-            // primero encontrar la posicion en la que se encuentra este indice dentro del array de ganadores
-            // una vez q la hemos encontrado(creo q nos  serviria indexOf), una vez tenemos la posicion 
-            // hacemos el splice de la posicion en la q se encuentra el objeto q coincide con nuestro indice a modificar
+         
 
           console.log("ganadoreAntiguos antes despues del splice" , ganadoresAntiguos);
           ganadoresAntiguos.push(req.body);
           let nuevosGanadores= ganadoresAntiguos;
           console.log("nuevosganadores despues del push" , nuevosGanadores);
-          let indexPosition = nuevosGanadores.indexOf(req.body);
-          console.log("Este es el indexposition",indexPosition);
+         
+            // primero encontrar la posicion en la que se encuentra este indice dentro del array de ganadores
+            // una vez q la hemos encontrado(creo q nos  serviria indexOf), una vez tenemos la posicion 
+            // hacemos el splice de la posicion en la q se encuentra el objeto q coincide con nuestro indice a modificar
           let nuevoResult= (req.body.resultados)
-          let nuevoIndex = (`indice: ${indexPosition}`);
-          nuevoCombo ={nuevoResult,nuevoIndex}
-          nuevosGanadores.splice(indexPosition,1, nuevoCombo);
+          let indice= nuevosGanadores.indexOf(req.body);
+          console.log("Este es el indexposition",indice);
+          nuevoCombo ={nuevoResult,indice}
+          nuevosGanadores.splice(indice,1, nuevoCombo);
           console.log("EStes es el splice del indice",nuevosGanadores);
           var dbo = db.db("proyectfinal");
           let pullAntiguosGanadores= { $pull: {"ganadores": {$ne:0 }}};
@@ -329,119 +350,15 @@ app.post("/cambiarGanador", function (req, res) {
             db.close();
             });
           
-
-          //ordenar el array por el indice 
-          //llamar a mongoclient y borrar ganadores, una vez borrado insertar nuevo array de ganadores
-        //   let i=0;
-        //   for(i ; i< longitud ; i++) {
-        //     if(result[0].ganadores[i].indice = req.body.indice){
-        //     let nuevosGanadores = result[0].ganadores[i].slice(i , 1 , req.body);
-        //     console.log("este es el result0 despues" , result[0].ganadores);
-        //     console.log("este es el nuevosGanadores" , nuevosGanadores);
-
-          
-        //     }         
-        // }  
       }
     }); 
   });
 });
 
 
-// // asi es como estaba---borrar
-// app.post("/cambiarGanador", function (req, res) {
-//   console.log("console req.body", req.body);
-//   MongoClient.connect(url, function(err, db) { 
-//     if (err) throw err; 
-//     var dbo = db.db("proyectfinal"); 
-//     // dbo.collection("local").find({$and: [{"grades.1.grade":"A"}, {"grades.1.score": 9}, {"grades.1.date.$date": mili}]}, {_id:0, restaurant_id:1, name:1, grades:1}).toArray(function(err, result) {
-
-//     dbo.collection("Torneos").find( { "ganadores.indice" : { $eq:req.body.indice }}).toArray(function (err, result) {
-//       if (err) throw err;
-//       console.log("este es el resultado" , result)
-//       if(result.length > 0){
-//         let n = req.body.indice;
-//         console.log(result[0].ganadores)
-//         console.log(result[0].ganadores.length)
-//         let longitud = result[0].ganadores.length
-//         let i=0;
-//         for(i=0 ; i< longitud ; i++) {
-
-//           if(result[0].ganadores[i].indice = req.body.indice){
-//                 // let stringQuery = `ganadores.${i}.resultados`
-//                 // console.log("stringquery aqui", stringQuery);
-//             let myquery = { "ganadores.indice" : req.body.indice  }; 
-//             let newvalues = { $set: {"ganadores": req.body } }; 
-//             dbo.collection("Torneos").updateOne(myquery, newvalues, function(err, res) { 
-//               if (err) throw err; 
-//               console.log("1 document updated"); 
-//               // db.close(); 
-//           });
-//           }     
-//         }
-//       }  
-//     }); 
-//   });
-// });
 
 
 
-// enviar datos del ganador a la BD
-// app.post("/enviarGanador", function (req, res) {
-//   console.log("console CrearEquipo", req.body);
-//   MongoClient.connect(url, function (err, db) {
-//     if (err) throw err;
-//     var dbo = db.db("proyectfinal");   
-
-//     dbo
-//       .collection("Torneos")
-//       .find( { "ganadores.indice" : { $eq:req.body.indice } })
-//       .toArray(function (err, result) {
-//         if (err) throw err;
-//         console.log(req.body);
-//         console.log("Resultado para indice", result);
-
-//         // let arrayGanadoresNew = result.ganadores.slice(index,1) //quitas la pieza q sobra
-//         // arrayGanadoresNew.push({ganadores:req.body.resultados,indice:req.body.indice})//agregas nuevo ganador
-       
-//         //borrar de la coleccion ganadores , ganadores...
-//         //insertar el nuevo array de ganadores
-
-//         //insertar el array ganadores
-//         res.end(JSON.stringify(result));
-        
-//         var myQueryIndice = { "ganadores.indice" : { $eq:req.body.indice } };
-//         var changeGanadores = { $set: {indice:req.body.indice, resultados: req.body.resultados } };
-
-//         if(result.length > 0){
-         
-//         console.log("ESTE ES EL REQ.BODY",req.body.resultados)
-//         console.log("ESTE ES EL REQ.BODY indice",req.body.indice)
-
-//         var dbo = db.db("proyectfinal");
-//         // var myqueryUser = { nombre: data.nombreUsuario };
-//         // .updateOne(myqueryUser, newvaluesUser, function (err, res) {
-
-//         dbo.collection("Torneos").updateOne(myQueryIndice, changeGanadores , function (err, res) {
-//           if (err) throw err;
-//           console.log("1 Torneo insertado");
-//           db.close();
-//         });
-//         // res.end(JSON.stringify(changeGanadores));
-//             }else{
-//           var newGanadores = { $push: { "ganadores": req.body } };
-//           console.log(req.body);
-//         var dbo = db.db("proyectfinal");
-//         dbo.collection("Torneos").updateOne({},newGanadores, function (err, res) {
-//           if (err) throw err;
-//           console.log("1 Torneo insertado");
-//           db.close();
-//         });
-//         // res.end(JSON.stringify(newGanadores));
-//         }
-//       });
-//   });
-// });
 
 
 var server = app.listen(8081, function () {
