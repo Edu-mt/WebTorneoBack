@@ -251,7 +251,9 @@ app.get('/traerTorneo', function(req, res) {
    }); 
 });
 
-app.post("/enviarGanador", function (req, res) {
+var resultadoGanadores="";
+
+app.post("/enviarGanador", async function (req, res) {
   var isFindEnviarGanador = false;
   console.log("console CrearEquipo", req.body);
   MongoClient.connect(url, function (err, db) {
@@ -276,19 +278,21 @@ app.post("/enviarGanador", function (req, res) {
         dbo.collection("Torneos").find({},{ projection: { _id: 0, ganadores:1} }).toArray(function(err, resultGanadores) { 
           if (err) throw err; 
           console.log("Este es result ganadores", resultGanadores); 
-          db.close()
-          let ganadoresOrdenados = resultGanadores;
+          
 
-          function mycomparator(a,b) {
+         function  mycomparator(a,b) {
             return (a.indice) - (b.indice);
           }
-          
-          ganadoresOrdenados[0].ganadores.sort(mycomparator);
-        console.log("Este esganadores con sort", ganadoresOrdenados[0].ganadores); 
-        console.log("Este es ganadores resultGanadores[0].ganadores", resultGanadores[0].ganadores); 
-        console.log("Este esganadores con ganadoresOrdenados[0].ganadores", ganadoresOrdenados[0].ganadores); 
+          resultadoGanadores =  resultGanadores[0].ganadores.sort(mycomparator);
+          console.log("Este es ganadores resultGanadores[0].ganadores", resultGanadores[0].ganadores); 
+          dbo.collection("Torneos").updateOne({nombreTorneo:"For honor"},{ $set: { "ganadores": resultadoGanadores } }, function (err, res) {
+            if (err) throw err;
+            console.log("Ganadores han sido ordenados");
+            db.close()
+            
+            });
 
-        }); 
+        });
 
      
        
