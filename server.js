@@ -359,7 +359,44 @@ app.post("/cambiarGanador", function (req, res) {
   });
 });
 
+app.post("/enviarAvatar", function (req, res) {
+ 
+  MongoClient.connect(url, function (err, db) {
+    if (err) throw err;
+    var dbo = db.db("proyectfinal");
+    let data = req.body;
+    console.log("DATA FOTO",data);
+  
+    let myqueryJugador = { listaJugadores: data.nombreUsuario };
 
+    let myqueryUser = { nombre: data.nombreUsuario };
+    let newvaluesUser = { $set: { avatar: data.avatar } };
+
+    dbo
+    .collection("imagenesUsuarios")
+    .find(myqueryJugador)
+    .toArray(function (err, result) {
+      if (err) throw err;
+      console.log(result);
+      resultBusqueda = result;
+      //comprobar que el array dl resultado de la busqueda es mayor que 0
+      if (result.length > 0) {        
+        isFind = true;
+        res.end(JSON.stringify({ stateFind: isFind }));
+      }else{
+  
+      dbo
+        .collection("users")
+        .updateOne(myqueryUser, newvaluesUser, function (err, res) {
+          if (err) throw err;
+          console.log(res);
+          db.close();
+        });
+      }
+    });         
+  
+  });
+});
 
 
 
