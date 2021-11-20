@@ -2,7 +2,7 @@ var express = require("express");
 var app = express();
 var bodyParser = require("body-parser");
 const multer = require("multer");
-// const upload = multer({ dest: './public/data/uploads/' })
+
 var fs = require('fs');
 var MongoClient = require("mongodb").MongoClient;
 const { response } = require("express");
@@ -41,14 +41,13 @@ app.post("/altaUsuario", function (req, res) {
         if (err) throw err;
         console.log(result);
         resultBusqueda = result;
-        //comprobar que el array dl resultado de la busqueda es mayor que 0
+
         if (result.length > 0) {
           console.log("el usuario ya existe");
           isFind = true;
           res.end(JSON.stringify({ stateFind: isFind, data: data }));
         } else {
-          //si no tiene ningun elemento el array de la busqeuda
-          //significa que no existe en la base de datos e insertamos...
+
           console.log("el usuario no existe");
           MongoClient.connect(url, function (err, db) {
             if (err) throw err;
@@ -65,7 +64,7 @@ app.post("/altaUsuario", function (req, res) {
   });
 });
 
-//Loggin
+
 app.get("/getLoggin", function (req, res) {
   console.log(req.query);
 
@@ -99,14 +98,14 @@ app.get("/getLoggin", function (req, res) {
         }
         db.close();
 
-        // res.json({ result });
+      
       });
   });
 });
 
-// Creacion de equipos
+
 app.post("/CrearEquipo", function (req, res) {
-  // Prepare output in JSON format
+
   console.log("console CrearEquipo", req.body);
   data = {
     nombreEquipo: req.body.nombreEquipo,
@@ -128,7 +127,7 @@ app.post("/CrearEquipo", function (req, res) {
   });
 });
 
-// Enviar equipo al front
+
 app.post("/traerEquipo", function (req, res) {
   MongoClient.connect(url, function (err, db) {
     if (err) throw err;
@@ -144,7 +143,7 @@ app.post("/traerEquipo", function (req, res) {
   });
 });
 
-// Unir usuario a un equipo
+
 app.post("/unirseEquipo", function (req, res) {
   var isFindEquipo = false;
 
@@ -169,7 +168,6 @@ app.post("/unirseEquipo", function (req, res) {
       if (err) throw err;
       console.log(result);
       resultBusqueda = result;
-      //comprobar que el array dl resultado de la busqueda es mayor que 0
       if (result.length > 0) {        
         isFindEquipo = true;
         res.end(JSON.stringify({ stateFindEquipo: isFindEquipo }));
@@ -216,7 +214,7 @@ app.post("/unirseEquipo", function (req, res) {
   });
 });
 
-// Creacion de coleccion para el generador de torneos
+
 app.post("/GenerarTorneo", function (req, res) {
   console.log("console CrearEquipo", req.body);
   data = {
@@ -285,7 +283,7 @@ app.post("/enviarGanador", async function (req, res) {
           }
           resultadoGanadores =  resultGanadores[0].ganadores.sort(mycomparator);
           console.log("Este es ganadores resultGanadores[0].ganadores", resultGanadores[0].ganadores); 
-          dbo.collection("Torneos").updateOne({nombreTorneo:"For honor"},{ $set: { "ganadores": resultadoGanadores } }, function (err, res) {
+          dbo.collection("Torneos").updateOne({"ganadores.indice" : { $eq:req.body.indice } },{ $set: { "ganadores": resultadoGanadores } }, function (err, res) {
             if (err) throw err;
             console.log("Ganadores han sido ordenados");
             db.close()
@@ -322,37 +320,31 @@ app.post("/cambiarGanador", function (req, res) {
           let ganadoresAntiguos = result[0].ganadores;
           console.log("ganadoreAntiguos antes antes del splice" , ganadoresAntiguos);
          
-          ganadoresAntiguos.splice(req.body.indice-1,1);
+          ganadoresAntiguos.splice(req.body.indice,1);
           
          
 
           console.log("ganadoreAntiguos antes despues del splice" , ganadoresAntiguos);
           ganadoresAntiguos.push(req.body);
-          let nuevosGanadores= ganadoresAntiguos;
-          console.log("nuevosganadores despues del push" , nuevosGanadores);
+          function  mycomparator(a,b) {
+            return (a.indice) - (b.indice);
+          }
+          let resultadoGanadoresModificados =  ganadoresAntiguos.sort(mycomparator);
+          console.log("nuevosganadores despues del push" , resultadoGanadoresModificados);
          
-            // primero encontrar la posicion en la que se encuentra este indice dentro del array de ganadores
-            // una vez q la hemos encontrado(creo q nos  serviria indexOf), una vez tenemos la posicion 
-            // hacemos el splice de la posicion en la q se encuentra el objeto q coincide con nuestro indice a modificar
+
           let nuevoResult= (req.body.resultados)
-          let indice= nuevosGanadores.indexOf(req.body);
+          let indice= resultadoGanadoresModificados.indexOf(req.body);
           console.log("Este es el indexposition",indice);
           nuevoCombo ={nuevoResult,indice}
-          nuevosGanadores.splice(indice,1, nuevoCombo);
-          console.log("EStes es el splice del indice",nuevosGanadores);
+          resultadoGanadoresModificados.splice(indice,1, nuevoCombo);
+          console.log("EStes es el splice del indice",resultadoGanadoresModificados);
           var dbo = db.db("proyectfinal");
-          let pullAntiguosGanadores= { $pull: {"ganadores": {$ne:0 }}};
-          dbo.collection("Torneos").updateOne({nombreTorneo:"For honor"},pullAntiguosGanadores, function (err, res) {
+          let actualizarAntiguosGanadores= { $set: { "ganadores": resultadoGanadoresModificados } };
+          dbo.collection("Torneos").updateOne({ "ganadores.indice" : { $eq:req.body.indice }},actualizarAntiguosGanadores, function (err, res) {
             if (err) throw err;
             console.log("nuevos ganadores insertados");
-          }); 
-          let pushNuevosGanadores= { $push: {"ganadores":nuevosGanadores }};
-
-          dbo.collection("Torneos").updateOne({nombreTorneo:"For honor"},pushNuevosGanadores, function (err, res) {
-            if (err) throw err;
-            console.log("nuevos ganadores insertados");
-            db.close();
-            });
+          });          
           
       }
     }); 
@@ -379,7 +371,6 @@ app.post("/enviarAvatar", function (req, res) {
       if (err) throw err;
       console.log(result);
       resultBusqueda = result;
-      //comprobar que el array dl resultado de la busqueda es mayor que 0
       if (result.length > 0) {        
         isFind = true;
         res.end(JSON.stringify({ stateFind: isFind }));
