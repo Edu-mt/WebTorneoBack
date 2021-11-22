@@ -64,7 +64,6 @@ app.post("/altaUsuario", function (req, res) {
   });
 });
 
-
 app.get("/getLoggin", function (req, res) {
   console.log(req.query);
 
@@ -87,7 +86,7 @@ app.get("/getLoggin", function (req, res) {
       })
       .toArray(function (err, result) {
         if (err) throw err;
-        console.log("este es el find del app.get", result);
+        console.log("este es el find del app.getLoggin", result);
         if (result.length > 0) {
           console.log("el usuario ya existe del get del server");
           isFindGet = true;
@@ -96,16 +95,12 @@ app.get("/getLoggin", function (req, res) {
           console.log("no existe el usuario introducido");
           res.end(JSON.stringify({ stateFindGet: isFindGet, data: result }));
         }
-        db.close();
-
-      
+        db.close();      
       });
   });
 });
 
-
 app.post("/CrearEquipo", function (req, res) {
-
   console.log("console CrearEquipo", req.body);
   data = {
     nombreEquipo: req.body.nombreEquipo,
@@ -127,7 +122,6 @@ app.post("/CrearEquipo", function (req, res) {
   });
 });
 
-
 app.post("/traerEquipo", function (req, res) {
   MongoClient.connect(url, function (err, db) {
     if (err) throw err;
@@ -142,7 +136,6 @@ app.post("/traerEquipo", function (req, res) {
       });
   });
 });
-
 
 app.post("/unirseEquipo", function (req, res) {
   var isFindEquipo = false;
@@ -179,7 +172,7 @@ app.post("/unirseEquipo", function (req, res) {
           console.log("find del app.post unirseEquipo", result);
         });
   
-      dbo
+        dbo
         .collection("users")
         .updateOne(myqueryUser, newvaluesUser, function (err, res) {
           if (err) throw err;
@@ -195,6 +188,7 @@ app.post("/unirseEquipo", function (req, res) {
         if (err) throw err;
         console.log("find del app.post unirseEquipo", result);
       });
+
       dbo
       .collection("equipos")
       .updateOne(myquery, newvalues, function (err, result) {
@@ -202,7 +196,7 @@ app.post("/unirseEquipo", function (req, res) {
         console.log("find del app.post unirseEquipo", result);
       });
 
-    dbo
+      dbo
       .collection("users")
       .updateOne(myqueryUser, newvaluesUser, function (err, res) {
         if (err) throw err;
@@ -213,7 +207,6 @@ app.post("/unirseEquipo", function (req, res) {
   
   });
 });
-
 
 app.post("/GenerarTorneo", function (req, res) {
   console.log("console CrearEquipo", req.body);
@@ -234,7 +227,6 @@ app.post("/GenerarTorneo", function (req, res) {
     res.end(JSON.stringify(data));
   });
 });
-
 
 app.get('/traerTorneo', function(req, res) {
   MongoClient.connect(url, function(err, db) { 
@@ -269,31 +261,25 @@ app.post("/enviarGanador", async function (req, res) {
         var dbo = db.db("proyectfinal");
         dbo.collection("Torneos").updateOne({},newGanadores, function (err, res) {
         if (err) throw err;
-        console.log("1 Torneo insertado");
-        
+        console.log("1 Torneo insertado");        
         });
           
         dbo.collection("Torneos").find({},{ projection: { _id: 0, ganadores:1} }).toArray(function(err, resultGanadores) { 
           if (err) throw err; 
-          console.log("Este es result ganadores", resultGanadores); 
-          
+          console.log("Este es result ganadores", resultGanadores);           
 
          function  mycomparator(a,b) {
             return (a.indice) - (b.indice);
           }
           resultadoGanadores =  resultGanadores[0].ganadores.sort(mycomparator);
           console.log("Este es ganadores resultGanadores[0].ganadores", resultGanadores[0].ganadores); 
+
           dbo.collection("Torneos").updateOne({"ganadores.indice" : { $eq:req.body.indice } },{ $set: { "ganadores": resultadoGanadores } }, function (err, res) {
             if (err) throw err;
             console.log("Ganadores han sido ordenados");
-            db.close()
-            
+            db.close()            
             });
-
-        });
-
-     
-       
+        });       
       }
       else{
         isFindEnviarGanador = true;
@@ -312,40 +298,33 @@ app.post("/cambiarGanador", function (req, res) {
 
     dbo.collection("Torneos").find( { "ganadores.indice" : { $eq:req.body.indice }}).toArray(function (err, result) {
       if (err) throw err;
-      console.log("este es el resultado" , result)
-      
+      console.log("este es el resultado" , result)      
         if(result.length > 0){
-          let longitud = result[0].ganadores.length;
           console.log("este es el result0 antes" , result[0].ganadores);
           let ganadoresAntiguos = result[0].ganadores;
-          console.log("ganadoreAntiguos antes antes del splice" , ganadoresAntiguos);
-         
+          console.log("ganadoreAntiguos antes del splice" , ganadoresAntiguos);         
           ganadoresAntiguos.splice(req.body.indice,1);
-          
-         
-
-          console.log("ganadoreAntiguos antes despues del splice" , ganadoresAntiguos);
+          console.log("ganadoreAntiguos despues del splice" , ganadoresAntiguos);
           ganadoresAntiguos.push(req.body);
           function  mycomparator(a,b) {
             return (a.indice) - (b.indice);
           }
           let resultadoGanadoresModificados =  ganadoresAntiguos.sort(mycomparator);
-          console.log("nuevosganadores despues del push" , resultadoGanadoresModificados);
-         
+          console.log("nuevosganadores despues del push" , resultadoGanadoresModificados);         
 
-          let nuevoResult= (req.body.resultados)
-          let indice= resultadoGanadoresModificados.indexOf(req.body);
-          console.log("Este es el indexposition",indice);
-          nuevoCombo ={nuevoResult,indice}
-          resultadoGanadoresModificados.splice(indice,1, nuevoCombo);
-          console.log("EStes es el splice del indice",resultadoGanadoresModificados);
-          var dbo = db.db("proyectfinal");
+          // let nuevoResult= (req.body.resultados)
+          // let indice= resultadoGanadoresModificados.indexOf(req.body);
+          // console.log("Este es el indexposition",indice);
+          // nuevoCombo ={nuevoResult,indice}
+          // resultadoGanadoresModificados.splice(indice,1, nuevoCombo);
+          // console.log("EStes es el splice del indice",resultadoGanadoresModificados);
+          // var dbo = db.db("proyectfinal");
           let actualizarAntiguosGanadores= { $set: { "ganadores": resultadoGanadoresModificados } };
+
           dbo.collection("Torneos").updateOne({ "ganadores.indice" : { $eq:req.body.indice }},actualizarAntiguosGanadores, function (err, res) {
             if (err) throw err;
             console.log("nuevos ganadores insertados");
           });          
-          
       }
     }); 
   });
@@ -388,10 +367,6 @@ app.post("/enviarAvatar", function (req, res) {
   
   });
 });
-
-
-
-
 
 var server = app.listen(8081, function () {
   var host = server.address().address;
