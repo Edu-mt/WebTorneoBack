@@ -209,7 +209,7 @@ app.post("/unirseEquipo", function (req, res) {
 });
 
 app.post("/GenerarTorneo", function (req, res) {
-  console.log("console CrearEquipo", req.body);
+  console.log("console GenerarTorneo", req.body);
   data = {
     nombreTorneo:  req.body.nombreTorneo,
     arrayPartidas: req.body.arrayPartidas,
@@ -241,7 +241,6 @@ app.get('/traerTorneo', function(req, res) {
    }); 
 });
 
-var resultadoGanadores="";
 
 app.post("/enviarGanador", async function (req, res) {
   var isFindEnviarGanador = false;
@@ -365,6 +364,19 @@ app.post("/enviarAvatar", function (req, res) {
       }
     });         
   
+  });
+});
+
+app.post("/EliminarTorneo", function (req, res) {
+  console.log("console EliminarTorneo", req.body);  
+  MongoClient.connect(url, function (err, db) {
+    if (err) throw err;
+    var dbo = db.db("proyectfinal");
+    dbo.collection("Torneos").deleteOne({"nombreTorneo":  req.body.nombreTorneo}, function (err, res) {
+      if (err) throw err;
+      console.log("1 Torneo eliminado");
+      db.close();
+    });
   });
 });
 
