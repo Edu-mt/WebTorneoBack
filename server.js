@@ -392,12 +392,12 @@ app.post("/ganadoresJornada", function (req, res) {
 
     dbo.collection("Torneos").updateOne({}, newGanadoresJornada , function (err, res) {
       if (err) throw err;
-      console.log("Nuevos Ganadores insertados");
-      dbo.collection("Torneos").updateOne({}, eliminarGanadoresJornada , function (err, res) {
-        if (err) throw err;
-        console.log("Ganadores eliminados");
-        // db.close();
-      });
+      console.log("Nuevos Ganadores insertados");      
+      // db.close();
+    });
+    dbo.collection("Torneos").updateOne({}, eliminarGanadoresJornada , function (err, res) {
+      if (err) throw err;
+      console.log("Ganadores eliminados");
       db.close();
     });
     // res.end(JSON.stringify(data));
