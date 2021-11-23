@@ -214,6 +214,7 @@ app.post("/GenerarTorneo", function (req, res) {
     nombreTorneo:  req.body.nombreTorneo,
     arrayPartidas: req.body.arrayPartidas,
     ganadores: [],
+    jornadas: [],
   };
   console.log(data);
   MongoClient.connect(url, function (err, db) {
@@ -379,6 +380,45 @@ app.post("/EliminarTorneo", function (req, res) {
     });
   });
 });
+
+app.post("/ganadoresJornada", function (req, res) {
+  console.log("console ganadoresJornada", req.body);
+  console.log("esto es req.body.arrayGanadoresJornada" , req.body.arrayGanadoresJornada);
+  MongoClient.connect(url, function (err, db) {
+    if (err) throw err;
+    var dbo = db.db("proyectfinal");
+    let newGanadoresJornada = { $push: { "jornadas": req.body.arrayGanadoresJornada } };
+    let eliminarGanadoresJornada= { $set: { "ganadores": [] } };
+
+    dbo.collection("Torneos").updateOne({}, newGanadoresJornada , function (err, res) {
+      if (err) throw err;
+      console.log("Nuevos Ganadores insertados");
+      dbo.collection("Torneos").updateOne({}, eliminarGanadoresJornada , function (err, res) {
+        if (err) throw err;
+        console.log("Ganadores eliminados");
+        // db.close();
+      });
+      db.close();
+    });
+    // res.end(JSON.stringify(data));
+  });
+});
+
+// app.post("/EliminarGanadores", function (req, res) {
+//   console.log("console EliminarGanadores", req.body);
+//   MongoClient.connect(url, function (err, db) {
+//     if (err) throw err;
+//     var dbo = db.db("proyectfinal");
+//     let eliminarGanadoresJornada= { $set: { "ganadores": [] } };
+
+//     dbo.collection("Torneos").updateOne({"nombreTorneo": req.body.nombreTorneo}, eliminarGanadoresJornada , function (err, res) {
+//       if (err) throw err;
+//       console.log("Ganadores eliminados");
+//       db.close();
+//     });
+//     res.end(JSON.stringify(data));
+//   });
+// });
 
 var server = app.listen(8081, function () {
   var host = server.address().address;
