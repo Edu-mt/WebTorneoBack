@@ -214,7 +214,6 @@ app.post("/GenerarTorneo", function (req, res) {
     nombreTorneo:  req.body.nombreTorneo,
     arrayPartidas: req.body.arrayPartidas,
     ganadores: [],
-    ganadoresNoticias: [],
     jornadas: [],
   };
   console.log(data);
@@ -286,42 +285,6 @@ app.post("/enviarGanador", async function (req, res) {
         res.end(JSON.stringify({ stateisFindEnviarGanador: isFindEnviarGanador }));
       }
     });
-    let newGanadoresNoticias = { $push: { "ganadoresNoticias": req.body } };
-    dbo
-    .collection("Torneos")
-    .find( { "ganadoresNoticias.indice" : { $eq:req.body.indice } })
-    .toArray(function (err, resultNoticias) {
-    if (err) throw err;
-    console.log("NOTICIAS - SEGUNDO HACE LA BUSQUEDA POR INDICE, result" , resultNoticias);
-    if(resultNoticias.length === 0){
-      if (err) throw err;          
-      console.log(req.body);
-      var dbo = db.db("proyectfinal");
-      dbo.collection("Torneos").updateOne({},newGanadoresNoticias, function (err, resNoticias) {
-      if (err) throw err;
-      console.log("NOTICIAS - TERCERO INSERTA EL GANADOR, resNoticias", resNoticias);  
-      if( resNoticias.modifiedCount === 1){
-        dbo.collection("Torneos").find({},{ projection: { _id: 0, ganadoresNoticias:1} }).toArray(function(err, resultGanadoresNoticias) { 
-          if (err) throw err; 
-          console.log(" NOTICIAS - CUARTO, HACE UNA BUSQUEDA DE LOS GANADORES,  resultGanadoresNoticias", resultGanadoresNoticias);           
-  
-         function  mycomparatorNoticias(a,b) {
-            return (a.indice) - (b.indice);
-          }
-          resultadoGanadoresNoticias =  resultGanadoresNoticias[0].ganadoresNoticias.sort(mycomparatorNoticias);
-          console.log("NOTICIAS - QUINTO, NOS TRAE EL RESULTADO ORDENADO, resultadoGanadoresNoticias ", resultadoGanadoresNoticias); 
-  
-          dbo.collection("Torneos").updateOne({"ganadoresNoticias.indice" : { $eq:req.body.indice } },{ $set: { "ganadoresNoticias": resultadoGanadoresNoticias } }, function (err, res) {
-            if (err) throw err;
-            console.log("NOTICIAS - SEXTO, ACTUALIZACION DE Ganadores han sido ordenados");   
-            db.close()            
-            });
-        });
-      }  
-              
-      });     
-    }
-  });
   });
 });
 
