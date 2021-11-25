@@ -214,6 +214,7 @@ app.post("/GenerarTorneo", function (req, res) {
     nombreTorneo:  req.body.nombreTorneo,
     arrayPartidas: req.body.arrayPartidas,
     ganadores: [],
+    ganadoresNoticias: [],
     jornadas: [],
   };
   console.log(data);
@@ -245,7 +246,7 @@ app.get('/traerTorneo', function(req, res) {
 
 app.post("/enviarGanador", async function (req, res) {
   var isFindEnviarGanador = false;
-  console.log("console CrearEquipo", req.body);
+  console.log("EMPIEZA POR AQUI EL GANADOR req.body", req.body);
   MongoClient.connect(url, function (err, db) {
     var dbo = db.db("proyectfinal");   
       let newGanadores = { $push: { "ganadores": req.body } };
@@ -254,31 +255,30 @@ app.post("/enviarGanador", async function (req, res) {
       .find( { "ganadores.indice" : { $eq:req.body.indice } })
       .toArray(function (err, result) {
       if (err) throw err;
-      console.log("este es el resultado" , result)
+      console.log("SEGUNDO HACE LA BUSQUEDA POR INDICE, result" , result);
       if(result.length === 0){
         if (err) throw err;          
-        console.log(req.body);
         var dbo = db.db("proyectfinal");
         dbo.collection("Torneos").updateOne({},newGanadores, function (err, res) {
         if (err) throw err;
-        console.log("1 Torneo insertado");        
+        console.log("TERCERO INSERTA EL GANADOR, res", res);        
         });
           
         dbo.collection("Torneos").find({},{ projection: { _id: 0, ganadores:1} }).toArray(function(err, resultGanadores) { 
           if (err) throw err; 
-          console.log("Este es result ganadores", resultGanadores);           
+          console.log("CUARTO, HACE UNA BUSQUEDA DE LOS GANADORES,  resultGanadores", resultGanadores);           
 
          function  mycomparator(a,b) {
             return (a.indice) - (b.indice);
           }
           resultadoGanadores =  resultGanadores[0].ganadores.sort(mycomparator);
-          console.log("Este es ganadores resultGanadores[0].ganadores", resultGanadores[0].ganadores); 
+          console.log("QUINTO, NOS TRAE EL RESULTADO ORDENADO, resultadoGanadores ", resultadoGanadores); 
 
           dbo.collection("Torneos").updateOne({"ganadores.indice" : { $eq:req.body.indice } },{ $set: { "ganadores": resultadoGanadores } }, function (err, res) {
             if (err) throw err;
-            console.log("Ganadores han sido ordenados");
-            db.close()            
+            console.log("SEXTO, ACTUALIZACION DE Ganadores han sido ordenados");           
             });
+            
         });       
       }
       else{
@@ -286,8 +286,46 @@ app.post("/enviarGanador", async function (req, res) {
         res.end(JSON.stringify({ stateisFindEnviarGanador: isFindEnviarGanador }));
       }
     });
+    let newGanadoresNoticias = { $push: { "ganadoresNoticias": req.body } };
+    dbo
+    .collection("Torneos")
+    .find( { "ganadoresNoticias.indice" : { $eq:req.body.indice } })
+    .toArray(function (err, resultNoticias) {
+    if (err) throw err;
+    console.log("NOTICIAS - SEGUNDO HACE LA BUSQUEDA POR INDICE, result" , resultNoticias);
+    if(resultNoticias.length === 0){
+      if (err) throw err;          
+      console.log(req.body);
+      var dbo = db.db("proyectfinal");
+      dbo.collection("Torneos").updateOne({},newGanadoresNoticias, function (err, resNoticias) {
+      if (err) throw err;
+      console.log("NOTICIAS - TERCERO INSERTA EL GANADOR, resNoticias", resNoticias);  
+      if( resNoticias.modifiedCount === 1){
+        dbo.collection("Torneos").find({},{ projection: { _id: 0, ganadoresNoticias:1} }).toArray(function(err, resultGanadoresNoticias) { 
+          if (err) throw err; 
+          console.log(" NOTICIAS - CUARTO, HACE UNA BUSQUEDA DE LOS GANADORES,  resultGanadoresNoticias", resultGanadoresNoticias);           
+  
+         function  mycomparatorNoticias(a,b) {
+            return (a.indice) - (b.indice);
+          }
+          resultadoGanadoresNoticias =  resultGanadoresNoticias[0].ganadoresNoticias.sort(mycomparatorNoticias);
+          console.log("NOTICIAS - QUINTO, NOS TRAE EL RESULTADO ORDENADO, resultadoGanadoresNoticias ", resultadoGanadoresNoticias); 
+  
+          dbo.collection("Torneos").updateOne({"ganadoresNoticias.indice" : { $eq:req.body.indice } },{ $set: { "ganadoresNoticias": resultadoGanadoresNoticias } }, function (err, res) {
+            if (err) throw err;
+            console.log("NOTICIAS - SEXTO, ACTUALIZACION DE Ganadores han sido ordenados");   
+            db.close()            
+            });
+        });
+      }  
+              
+      });     
+    }
+  });
   });
 });
+
+
 
 
 app.post("/cambiarGanador", function (req, res) {
