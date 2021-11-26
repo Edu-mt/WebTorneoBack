@@ -405,21 +405,32 @@ app.post("/ganadoresJornada", function (req, res) {
   });
 });
 
-// app.post("/EliminarGanadores", function (req, res) {
-//   console.log("console EliminarGanadores", req.body);
-//   MongoClient.connect(url, function (err, db) {
-//     if (err) throw err;
-//     var dbo = db.db("proyectfinal");
-//     let eliminarGanadoresJornada= { $set: { "ganadores": [] } };
+app.post("/crearNoticias", function (req, res) {
+  console.log("console GenerarTorneo", req.body);
+  MongoClient.connect(url, function (err, db) {
+    if (err) throw err;
+    var dbo = db.db("proyectfinal");
+    dbo.collection("Noticias").insertOne(req.body, function (err, res) {
+      if (err) throw err;
+      console.log("1 texto insertado");
+    });
+  });
+});
 
-//     dbo.collection("Torneos").updateOne({"nombreTorneo": req.body.nombreTorneo}, eliminarGanadoresJornada , function (err, res) {
-//       if (err) throw err;
-//       console.log("Ganadores eliminados");
-//       db.close();
-//     });
-//     res.end(JSON.stringify(data));
-//   });
-// });
+app.post("/traerNoticias", function (req, res) {
+  MongoClient.connect(url, function (err, db) {
+    if (err) throw err;
+    var dbo = db.db("proyectfinal");
+    dbo
+      .collection("Noticias")
+      .find()
+      .toArray(function (err, result) {
+        if (err) throw err;
+        console.log("TRAERNOTICIAS", result);
+        res.end(JSON.stringify(result));
+      });
+  });
+});
 
 var server = app.listen(8081, function () {
   var host = server.address().address;
