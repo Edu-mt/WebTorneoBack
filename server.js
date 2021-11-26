@@ -377,10 +377,16 @@ app.post("/EliminarTorneo", function (req, res) {
     dbo.collection("Torneos").deleteOne({"nombreTorneo":  req.body.nombreTorneo}, function (err, res) {
       if (err) throw err;
       console.log("1 Torneo eliminado");
-      db.close();
+     
+    });
+    dbo.dropCollection("Noticias", function(err, delOK) { 
+      if (err) throw err; 
+      if (delOK) console.log("Collection deleted"); 
+      db.close(); 
     });
   });
 });
+
 
 app.post("/ganadoresJornada", function (req, res) {
   console.log("console ganadoresJornada", req.body);
@@ -431,6 +437,7 @@ app.post("/traerNoticias", function (req, res) {
       });
   });
 });
+
 
 var server = app.listen(8081, function () {
   var host = server.address().address;
