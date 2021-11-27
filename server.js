@@ -416,12 +416,27 @@ app.post("/crearNoticias", function (req, res) {
   MongoClient.connect(url, function (err, db) {
     if (err) throw err;
     var dbo = db.db("proyectfinal");
-    dbo.collection("Noticias").insertOne(req.body, function (err, res) {
+
+    dbo.collection("Noticias").find( { "texto" : { $eq:req.body.texto }}).toArray(function (err, result) {
       if (err) throw err;
-      console.log("1 texto insertado");
-    });
+      console.log("este es el resultado" , result)      
+        if(result.length === 0){          
+          dbo.collection("Noticias").insertOne(req.body, function (err, res) {
+            if (err) throw err;
+            console.log("1 texto insertado");
+          });
+      }
+    });     
   });
 });
+
+
+
+
+
+
+
+
 
 app.post("/traerNoticias", function (req, res) {
   MongoClient.connect(url, function (err, db) {
