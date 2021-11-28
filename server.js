@@ -242,6 +242,7 @@ app.get('/traerTorneo', function(req, res) {
    }); 
 });
 
+
 app.post("/enviarGanador", async function (req, res) {
   var isFindEnviarGanador = false;
   console.log("EMPIEZA POR AQUI EL GANADOR req.body", req.body);
@@ -286,6 +287,9 @@ app.post("/enviarGanador", async function (req, res) {
     });
   });
 });
+
+
+
 
 app.post("/cambiarGanador", function (req, res) {
   console.log("console req.body", req.body);
@@ -424,6 +428,14 @@ app.post("/crearNoticias", function (req, res) {
     });     
   });
 });
+
+
+
+
+
+
+
+
 
 app.post("/traerNoticias", function (req, res) {
   MongoClient.connect(url, function (err, db) {
