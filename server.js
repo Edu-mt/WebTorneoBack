@@ -328,7 +328,7 @@ app.post("/cambiarGanador", function (req, res) {
 });
 
 app.post("/enviarAvatar", function (req, res) {
- 
+  var changePhoto = false;
   MongoClient.connect(url, function (err, db) {
     if (err) throw err;
     var dbo = db.db("proyectfinal");
@@ -336,7 +336,6 @@ app.post("/enviarAvatar", function (req, res) {
     console.log("DATA FOTO",data);
   
     let myqueryJugador = { listaJugadores: data.nombreUsuario };
-
     let myqueryUser = { nombre: data.nombreUsuario };
     let newvaluesUser = { $set: { avatar: data.avatar } };
 
@@ -348,22 +347,22 @@ app.post("/enviarAvatar", function (req, res) {
       console.log(result);
       resultBusqueda = result;
       if (result.length > 0) {        
-        isFind = true;
-        res.end(JSON.stringify({ stateFind: isFind }));
       }else{
-  
+        changePhoto = true;
       dbo
         .collection("users")
         .updateOne(myqueryUser, newvaluesUser, function (err, res) {
           if (err) throw err;
-          console.log(res);
+          console.log(res);          
           db.close();
         });
+        res.end(JSON.stringify({ stateFindChangePhoto: changePhoto }));
       }
     });         
   
   });
 });
+
 
 app.post("/EliminarTorneo", function (req, res) {
   console.log("console EliminarTorneo", req.body);  
