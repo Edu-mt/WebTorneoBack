@@ -23,6 +23,10 @@ app.use(bodyParser.json());
 
 app.use(express.static("public"));
 
+function token(){
+  return Math.random().toString(36).substr(2);
+};
+
 app.post("/altaUsuario", function (req, res) {
   console.log("altaUsuario");
 
@@ -66,7 +70,9 @@ app.post("/altaUsuario", function (req, res) {
 
 app.get("/getLoggin", function (req, res) {
   console.log(req.query);
+  var tokenUser=Math.random().toString(36).substr(2);
 
+  console.log(tokenUser,"Este es el HAYUKEN")
   var isFindGet = false;
 
   const nombre = req.query.nombre;
@@ -90,7 +96,8 @@ app.get("/getLoggin", function (req, res) {
         if (result.length > 0) {
           console.log("el usuario ya existe del get del server");
           isFindGet = true;
-          res.end(JSON.stringify({ stateFindGet: isFindGet, data: result }));
+          res.end(JSON.stringify({ stateFindGet: isFindGet, data: result, token: tokenUser}));
+
         } else {
           console.log("no existe el usuario introducido");
           res.end(JSON.stringify({ stateFindGet: isFindGet, data: result }));
